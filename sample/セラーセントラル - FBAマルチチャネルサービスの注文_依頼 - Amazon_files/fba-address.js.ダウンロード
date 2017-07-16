@@ -1,0 +1,173 @@
+if (!FBA) var FBA = {};
+
+FBA.Address = $.extend({}, FBA.Address, {
+    addressFormats: {
+        'default': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_Optional',
+            '#address_row_PostalCode'
+        ],
+        'US': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_US',
+            '#address_row_PostalCode'
+        ],
+        'CA': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_CA',
+            '#address_row_PostalCode'
+        ],
+        'GB': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State',
+            '#address_row_PostalCode'
+        ],
+        'DE': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_Optional',
+            '#address_row_PostalCode'
+        ],
+        'FR': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_Optional',
+            '#address_row_PostalCode'
+        ],
+        'IT': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_PostalCode',
+            '#address_row_City',
+            '#address_row_State'
+        ],
+        'ES': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_PostalCode',
+            '#address_row_City'
+        ],
+        'JP': [
+            '#address_row_PostalCode',
+            '#address_row_State_JP',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_FullName'
+        ],
+        'CN': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_ProvinceCityDistrict_CN',
+            '#address_row_PostalCode'
+        ],
+        'IN': [
+            '#address_row_FullName',
+            '#address_row_AddressLine1',
+            '#address_row_AddressLine2',
+            '#address_row_City',
+            '#address_row_State_IN',
+            '#address_row_PostalCode'
+        ]
+    },
+    CN: {
+        $state: jQuery('#address_row_ProvinceCityDistrict_CN select[name="state"]'),
+        $city: jQuery('#address_row_ProvinceCityDistrict_CN select[name="city"]'),
+        $district: jQuery('#address_row_ProvinceCityDistrict_CN select[name="district"]'),
+        cnProvincialData: {},
+        init: function () {
+           FBA.Address.CN.$state
+               .change(FBA.Address.CN.resetCity)
+               .change(FBA.Address.CN.resetDistrict)
+               .change(FBA.Address.CN.getCities)
+                 .val($('input[name="oldState"]:hidden').val());
+           FBA.Address.CN.$state
+               .change();
+           FBA.Address.CN.$city
+               .change(FBA.Address.CN.resetDistrict)
+               .change(FBA.Address.CN.getDistricts)
+               .val($('input[name="oldCity"]:hidden').val());
+           FBA.Address.CN.$city
+               .change();
+           FBA.Address.CN.$district
+               .val($('input[name="oldDistrict"]:hidden').val());
+        },
+        getCities: function () {
+           var data = FBA.Address.CN.cnProvincialData;
+           var s = FBA.Address.CN.$state.find('option:selected').text();
+           if (data && data[s]) {
+               for (var c in data[s]) {
+                   if (typeof c == 'string') FBA.Address.CN.addOption(FBA.Address.CN.$city[0],c);
+               }
+           }
+        },
+        getDistricts: function () {
+           var data = FBA.Address.CN.cnProvincialData;
+           var s = FBA.Address.CN.$state.find('option:selected').text();
+           var c = FBA.Address.CN.$city.find('option:selected').text();
+           if (data && data[s] && data[s][c]) {
+               for (var d in data[s][c]) {
+                   if (typeof data[s][c][d] == 'string') FBA.Address.CN.addOption(FBA.Address.CN.$district[0], data[s][c][d]);
+                }
+            }
+        },
+        resetCity: function () {
+           FBA.Address.CN.$city.empty();
+           FBA.Address.CN.$city.html('<option value="">--</option>');
+        },
+        resetDistrict: function () {
+           FBA.Address.CN.$district.empty();
+           FBA.Address.CN.$district.html('<option value="">--</option>');
+        },
+        addOption: function (el, opt) {
+           var o = document.createElement("option");
+           o.text = opt;
+           o.value = opt;
+           el.options.add(o);
+        }
+    },
+    init: function () {
+        FBA.Address.CN.init();
+
+        $('#countryName, #countryCode')
+        .bind('click change keypress', function () {
+            FBA.Address.updateAddressFormat($(this).val());
+        })
+        .bind('blur', function () {
+            var $fields = $(this).parents('form:first').find(':input:visible:enabled');
+            $fields.eq($fields.index(this)+1).focus();
+        })
+        .change();
+    },
+    updateAddressFormat: function (country) {
+        var $rows = $('#address_rows');
+        var addressFormat = FBA.Address.addressFormats[country];
+        if (!addressFormat) addressFormat = FBA.Address.addressFormats['default'];
+        var addressFormatLength = addressFormat.length;
+        if (addressFormatLength) {
+            var addressFormatSelector = addressFormat.join(', ');
+            $rows.children().hide().find(':input').attr('disabled', 'disabled');
+            for (var i = 0; i < addressFormatLength; i++) {
+                $rows.find(addressFormat[i]).appendTo($rows).show().find(':input').removeAttr('disabled');
+            }
+        }
+    }
+});

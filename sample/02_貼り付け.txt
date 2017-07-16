@@ -1,0 +1,11 @@
+javascript:(function(){var script=document.createElement('script');script.innerHTML='window.addEventListener(\'paste\',function(e){e.preventDefault();var data_transfer=(e.clipboardData)||(window.clipboardData);var str=data_transfer.getData(\'text\');var cinfos=str.split(\'@\'); cinfos.forEach(function(val,i){if(i==0){document.getElementById(\'enterAddressFullName\').value = val;}if(i==1){var zip1=val.substr(0,3);var zip2=val.substr(3,4);document.getElementById(\'enterAddressPostalCode1\').value = zip1;document.getElementById(\'enterAddressPostalCode2\').value = zip2;}if(i==2){ var a=val.split(\' \');document.getElementById(\'enterAddressStateOrRegion\').value=a.shift();if(a[0].length>16){alert(\'市区町村が16文字を超えています。手動で作業してください。\');};document.getElementById(\'enterAddressAddressLine1\').value=a.shift();var s=a.join(\' \');if(s.length>32){alert(\'住所が長すぎます。手動で作業してください。\');}else if(s.length<=16){document.getElementById(\'enterAddressAddressLine2\').value=s;}else{document.getElementById(\'enterAddressAddressLine2\').value=s.substr(0,16);document.getElementById(\'enterAddressAddressLine3\').value=s.substr(16,s.length-16);}}if(i==3){document.getElementById(\'enterAddressPhoneNumber\').value=val;}});});';document.body.appendChild(script)})();
+
+※直接フォームに挿入することが出来ないので、
+現在は、
+①コピーのブックマークレットをクリック
+②貼り付けのブックマークレットをクリック
+③Ctrl + Vでフォームに挿入
+
+の手順となります。
+③無しで、②のみで出来ればよいのですが、仕様上不可とのことだったで
+この対応をしています。
